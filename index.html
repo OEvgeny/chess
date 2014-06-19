@@ -1,0 +1,393 @@
+<html>
+	<head>
+		<meta charset="utf-8"> 
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			.field {
+				display: table;
+				margin: 0 auto;
+				margin-top: 2em;/*TODO Make borders with coords*/
+				width: 800px;
+				height: 800px;
+				background: white;
+				border: solid black 1px;
+				-webkit-user-select: none;
+			}
+			.row {
+				display: table-row;
+				height: 12.5%;
+			}
+			.cell {
+				display: table-cell;
+				width: 12.5%;
+				vertical-align: middle;
+				background: white;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#fff), to(#eee));
+			}
+			.row:nth-child(odd) .cell:nth-child(even),
+			.row:nth-child(even) .cell:nth-child(odd) {
+				background: #999;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#bbb), to(#eee));
+			}
+			.row .cell.allowed {
+				background: #ADF;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#def), to(#ace));
+			}
+			.row .cell.allowed:hover {
+				cursor: pointer;
+				background: #ADF;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#eff), to(#bdf));
+			}
+			.row:nth-child(odd) .cell:nth-child(even).allowed,
+			.row:nth-child(even) .cell:nth-child(odd).allowed {
+				background: #7AF;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#8ac), to(#ace));
+			}
+			.row .cell.dangerous {
+				background: #FDA;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#fed), to(#eca));
+			}
+			.row:nth-child(odd) .cell:nth-child(even).dangerous,
+			.row:nth-child(even) .cell:nth-child(odd).dangerous {
+				background: #FA7;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#ca8), to(#eca));
+			}
+			.row:nth-child(odd) .cell:nth-child(even).allowed:hover,
+			.row:nth-child(even) .cell:nth-child(odd).allowed:hover {
+				cursor: pointer;
+				background: #7AF;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#9bd), to(#bdf));
+			}
+			.white, .black {/*TODO  may be add piece class*/
+				font-size: 64px;
+				text-align: center;
+				-webkit-text-stroke: 2px #999;
+				transition: all 0.20s ease-in-out;
+			}
+			.white {
+				color: white;
+				-webkit-text-stroke: 2px #999;
+			}
+			.white:hover, .black:hover {
+				cursor: pointer;
+				-webkit-transform: scale(1.4);
+			}
+			.pawn:after {
+				content: "\265F";
+			}
+			.knight:after {
+				content: "\265E";
+			}
+			.bishop:after {
+				content: "\265D";
+			}
+			.rook:after {
+				content: "\265C";
+			}
+			.queen:after {
+				content: "\265B";
+			}
+			.king:after {
+				content: "\265A";
+			}
+			.disabled {/*TODO Maybe disable opposite pieces to select*/
+				pointer-events: none;
+			}
+			.field:first-child .promotionContainer {
+				color: white;
+				-webkit-text-stroke: 1px #999;
+			}
+			.field:last-child .promotionContainer {
+				color: black;
+				-webkit-text-stroke: 1px #777;
+			}
+			.promotionContainer {
+				font-size: 36px;
+				display: block;
+				cursor: auto;
+				margin: 12px;
+
+			}
+			.promotionContainer div {
+				display: inline-block;
+				cursor: pointer;
+			}
+			.controll {
+				font-weight: bold;
+				font-size: 40px;
+				width: 800px;
+				margin: 0 auto;
+			}
+			.controll .button {
+				display: inline-block;
+				margin: 5px 5px 5px 0;
+				padding: 5px;
+				border: 2px solid #777;
+				border-radius: 5px;
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#fff), to(#eee));
+				cursor: pointer;
+			}
+			.controll .button:hover {
+				background:-webkit-gradient(linear, 0 0, 0 100%, to(#9bd), from(#bdf));
+			}
+			.controll .button:active {
+				background:-webkit-gradient(linear, 0 0, 0 100%, from(#bbb), to(#eee));
+			}
+
+			.controll .stepBack:after {
+				content: "\21b6"
+			}
+			.controll .stepNext:after {
+				content: "\21b7"
+			}
+			.controll .randomMove:after {
+				content: "Random"
+			}
+			.black.canCapture {
+				color: #A15;
+			}
+			.white.canCapture {
+				color: #FCB;
+			}
+		</style>
+		<script type="text/javascript" src="game.js"></script>
+		<script type="text/javascript">
+		var stdPieces = [{player:"white",type:"pawn",pos:{x:1,y:2},passant:false},{player:"black",type:"pawn",pos:{x:1,y:7},passant:false},{player:"white",type:"pawn",pos:{x:2,y:2},passant:false},{player:"black",type:"pawn",pos:{x:2,y:7},passant:false},{player:"white",type:"pawn",pos:{x:3,y:2},passant:false},{player:"black",type:"pawn",pos:{x:3,y:7},passant:false},{player:"white",type:"pawn",pos:{x:4,y:2},passant:false},{player:"black",type:"pawn",pos:{x:4,y:7},passant:false},{player:"white",type:"pawn",pos:{x:5,y:2},passant:false},{player:"black",type:"pawn",pos:{x:5,y:7},passant:false},{player:"white",type:"pawn",pos:{x:6,y:2},passant:false},{player:"black",type:"pawn",pos:{x:6,y:7},passant:false},{player:"white",type:"pawn",pos:{x:7,y:2},passant:false},{player:"black",type:"pawn",pos:{x:7,y:7},passant:false},{player:"white",type:"pawn",pos:{x:8,y:2},passant:false},{player:"black",type:"pawn",pos:{x:8,y:7},passant:false},{player:"white",type:"rook",pos:{x:1,y:1}},{player:"white",type:"rook",pos:{x:8,y:1}},{player:"white",type:"knight",pos:{x:2,y:1}},{player:"white",type:"knight",pos:{x:7,y:1}},{player:"white",type:"bishop",pos:{x:3,y:1}},{player:"white",type:"bishop",pos:{x:6,y:1}},{player:"white",type:"king",pos:{x:5,y:1}},{player:"white",type:"queen",pos:{x:4,y:1}},{player:"black",type:"rook",pos:{x:1,y:8}},{player:"black",type:"rook",pos:{x:8,y:8}},{player:"black",type:"knight",pos:{x:2,y:8}},{player:"black",type:"knight",pos:{x:7,y:8}},{player:"black",type:"bishop",pos:{x:3,y:8}},{player:"black",type:"bishop",pos:{x:6,y:8}},{player:"black",type:"king",pos:{x:5,y:8}},{player:"black",type:"queen",pos:{x:4,y:8}}];
+
+		var scene = (function(){
+				var field = [];
+				for (var i = 1; i <= 8; i++)
+					field[i] = [];
+
+				var pieces = [];
+
+				var doActions = function(move) {
+					if (move !== false) {
+						scene.hideMovs();//needs a lot of thinking
+						for (var i = 0; i < move.length; i++) {
+							console.log(move[i]);
+							var action = move[i];
+							switch (action.task) {
+								case 'capture':
+									pieces[action.id].remove();
+									break;
+								case 'release':
+								case 'move':
+									field[action.x][action.y].appendChild(pieces[action.id]);
+									break;
+								case 'allow':
+									field[action.x][action.y].movId = action.id;
+									field[action.x][action.y].classList.add("allowed");
+									break;
+								case 'danger':
+									field[action.x][action.y].classList.add("dangerous");
+									break;
+								case 'promote':
+									field[action.x][action.y].classList.add("promoting");
+									break;
+								case 'setType':// TODO Сделать универсальную смену типов
+									pieces[action.id].classList.remove('pawn');
+									pieces[action.id].classList.add(action.type);
+									break;
+								case 'canCapture':
+									pieces[action.id].classList.add(action.task);
+									break;
+								case 'message':
+									console.log(action);
+									break;
+								default:
+									console.log('Unknown action: ' + action.task);
+									break;
+							}
+						}
+					}
+				}
+
+				var promotingSelect = document.createElement('div');
+				promotingSelect.classList.add('promotionContainer');
+
+				var promotionSelected = function(event) {
+					var actions = game.ply({
+						id:event.target.parentElement.movId, 
+						type:event.target.pieceType
+					});
+
+					if (promotingSelect.parentElement !== null)
+						promotingSelect.remove();
+
+					var lastMovs = document.querySelectorAll('.promoting');
+					for (var i = 0; i < lastMovs.length; i++) {
+						lastMovs[i].classList.remove("promoting");
+					}
+
+					doActions(actions);
+				}
+
+				var promotionTypes = ['queen', 'rook', 'bishop', 'knight'];
+				for (var i = 0; i < promotionTypes.length; i++) {
+					var d = document.createElement('div');
+					d.classList.add(promotionTypes[i]);
+					d.onclick = promotionSelected;
+					d.pieceType = promotionTypes[i];
+					promotingSelect.appendChild(d);
+				}
+
+				var cellSelected = function(event) {
+					if (!event.target.classList.contains('allowed'))
+						return;
+					if (event.target.classList.contains('promoting')) {
+						//showPromotingSelect(event);
+						promotingSelect.movId = event.target.movId;
+						event.target.appendChild(promotingSelect);
+						event.target.classList.remove('promoting');
+						scene.hideMovs();
+						return;
+					}
+
+					var actions = game.ply({id:event.target.movId});
+					doActions(actions);
+				};
+
+				var pieceSelected = function(event) {
+						var state = game.getCurrentState();//TODO
+						//need thinking about this process
+						if (promotingSelect.parentElement !== null)
+							return;
+
+						if (!event.target.classList.contains(state.player)){
+							var cell = event.target.parentNode;
+							cellSelected({target:cell});
+							return;
+						}
+						scene.hideMovs();
+
+						var actions = game.getPieceMovs(event.target.pieceId);
+						doActions(actions);
+				};
+
+				var addButton =  function(buttonClass, container, onclick) {
+					var button = document.createElement('div');
+					buttonClass = buttonClass || false;
+					if (buttonClass instanceof Array)
+						for (var i = 0; i < buttonClass.length; i++)
+							button.classList.add(buttonClass[i])
+					if (typeof buttonClass == 'string')
+						button.classList.add(buttonClass);
+					
+					button.classList.add("button");
+
+					if (!container instanceof Node)
+						return;
+
+					if (typeof onclick != 'function')
+						return;
+
+					button.onclick = onclick;
+
+					container.appendChild(button);
+				};
+
+				return {
+					debug: {field:field, pieces:pieces, addButton:addButton},
+					init: function() {
+						var f = document.createElement('div');
+						f.classList.add('field');
+						for (var i = 0; i < 8; i++) {
+
+							var r = document.createElement('div');
+							r.classList.add('row');
+							f.appendChild(r);
+							for (var j = 0; j < 8; j++) {
+								var c = document.createElement('div');
+								c.classList.add('cell');
+								c.onclick = cellSelected;
+							
+								r.appendChild(c);
+							
+								field[j + 1][8 - i] = c; //Swap i/j to rotate field
+							}
+						}
+
+						var c = document.createElement('div');
+						c.classList.add('controll');
+
+						addButton('stepBack', c, function(event) {doActions(game.goBack())});
+						addButton('stepNext', c, function(event) {doActions(game.goNext())});
+						addButton('randomMove', c, function(event) {computer.play()});
+
+						document.body.appendChild(f);
+						document.body.appendChild(c);
+
+						game.new({pieces:stdPieces});
+						var p = game.getPieces();
+
+						for (var i in p) {//TODO Maybe create separate functions
+							var el = document.createElement('div');
+							el.classList.add(p[i].player, p[i].type);
+							el.onclick = pieceSelected;//TODO select user color
+							el.pieceId = p[i].id;
+						
+							pieces[p[i].id] = el;
+						}
+					
+						for (var i = 0; i < p.length; i++) {
+							field[p[i].pos.x][p[i].pos.y].appendChild(pieces[p[i].id]);
+						}
+
+					},
+					hideMovs: function() {
+						var lastMovs = document.querySelectorAll('.allowed');
+						for (var i = 0; i < lastMovs.length; i++) {
+							lastMovs[i].classList.remove("allowed");
+							lastMovs[i].movId = null;
+						}
+						var lastMovs = document.querySelectorAll('.dangerous');
+						for (var i = 0; i < lastMovs.length; i++) {
+							lastMovs[i].classList.remove("dangerous");
+							lastMovs[i].movId = null;
+						}
+						var lastMovs = document.querySelectorAll('.canCapture');
+						for (var i = 0; i < lastMovs.length; i++) {
+							lastMovs[i].classList.remove("canCapture");
+							lastMovs[i].movId = null;
+						}
+					},
+					doActions: doActions//For computer
+				}
+			}());
+
+			function getRandom (min, max) {
+				return Math.floor(Math.random() * (max - min + 1)) + min;
+			}
+
+			var promotionAllowedTypes = ['rook', 'queen', 'bishop', 'knight'];
+
+			var computer = {
+				play: function () {
+					var pieces = game.debug.pieces.get({player:'player',captured:false});
+					var piece = pieces[getRandom(0, pieces.length - 1)];
+					var moves = game.getPieceMovs(piece.id);
+					if (moves.length > 0) {
+						//scene.doActions(moves);
+						var move = moves[getRandom(0, moves.length - 1)];
+						scene.doActions(game.ply({
+							id:move.id, 
+							type:promotionAllowedTypes[getRandom(0, 3)]
+						}));
+					}
+					else
+						this.play();
+				}
+			};
+			//TODO Add object "app" that will configure and create all neded parts
+			document.addEventListener('DOMContentLoaded', function() {
+				scene.init();
+			}, false);
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
