@@ -253,12 +253,11 @@ var game = (function(){
 				this[key] = piece[key];
 		if (typeof this.captured === 'undefined')
 				this.captured = false;
-		if ((this.type == 'king') && 
-			(typeof this.castling == 'undefined')) {
-				var castling = {};
-				castling.short = true;
-				castling.long = true;
-				this.castling = castling;
+		if (this.type == 'king') {//Подумать как это переписать
+			var castling = this.castling || {};
+			this.castling = {};
+			this.castling.long = typeof castling.long == "undefined" ? true : castling.long;
+			this.castling.short = typeof castling.short == "undefined" ? true : castling.short;
 		}
 	};
 
@@ -527,10 +526,10 @@ var game = (function(){
 					flag = false;
 
 				if (flag) {
-					map[2][piece.pos.y].allowed = true;
-					map[2][piece.pos.y].special = true;
-					map[2][piece.pos.y].piece = map[1][piece.pos.y].piece;
-					allowed.push(map[2][piece.pos.y]);
+					map[3][piece.pos.y].allowed = true;
+					map[3][piece.pos.y].special = true;
+					map[3][piece.pos.y].piece = map[1][piece.pos.y].piece;
+					allowed.push(map[3][piece.pos.y]);
 				}
 			}
 
@@ -656,13 +655,12 @@ var game = (function(){
 			else {
 				if (allowed[i].special) {
 					cell.pieces.push(allowed[i].piece.copy());
-					console.log(allowed[i].piece);
 					var d = piece.pos.x - allowed[i].x;
 					if (d > 1) {//for long castling
-						cell.params.push({pos: {x: piece.pos.x - 2, y: piece.pos.y}});
+						cell.params.push({pos: {x: 4, y: piece.pos.y}});
 					}
 					else //for short castling
-						cell.params.push({pos: {x: piece.pos.x + 1, y: piece.pos.y}});
+						cell.params.push({pos: {x: 6, y: piece.pos.y}});
 				}
 			if (allowed[i].passant)
 					cell.params[0].passant = true;
@@ -739,22 +737,28 @@ var game = (function(){
 					break;
 				case 'rook':
 					if (king.castling.short || king.castling.long) {
+						move.pieces.push(king.copy());
+						var castling = king.copy().castling;
 						if (move.pieces[0].pos.x === 1) {
-							king.castling.long = false;
-							break
-						}
-						if (move.pieces[0].pos.x === 8) {
-							king.castling.short = false;
+							castling.long = false;
+							move.params.push({castling:castling});
 							break;
 						}
-						king.castling.short = false;
-						king.castling.long = false;
+						if (move.pieces[0].pos.x === 8) {
+							castling.short = false;
+							move.params.push({castling:castling});
+							break;
+						}
+						castling.short = false;
+						castling.long = false;
+						move.params.push({castling:castling});
 					}
 					break;
 				case 'king':
 					if (move.pieces[0].castling.short || move.pieces[0].castling.long) {
-						move.pieces[0].castling.long = false;
-						move.pieces[0].castling.short = false;
+						move.params[0].castling = {};
+						move.params[0].castling.long = false;
+						move.params[0].castling.short = false;
 					}
 				default:
 					break;
@@ -818,6 +822,7 @@ var game = (function(){
 		},
 		goBack: function() {
 			//states.current.rollBack(); Не нужно - ход либо совершён либо нет
+			moves.clear();
 			states.back();
 			var sceneActions = actions.create(states.current, true);
 			states.current.rollBack();
@@ -825,6 +830,7 @@ var game = (function(){
 		},
 		goNext: function() {
 			states.current.apply();
+			moves.clear();
 			var sceneActions = actions.create(states.current, false);
 			states.next();
 			return sceneActions;
