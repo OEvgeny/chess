@@ -680,10 +680,11 @@ var game = (function(){
 		return {move:move,actions:actions};
 	};
 
-	//Функции проверки на шах и на мат
+	//Функции проверки на шах, пат и на мат
 	var check = function(player) {
-		var map = createMap();
+		player = player || states.current.player;
 		
+		var map = createMap();
 		var enemyPieces = pieces.get({player:enemyPlayer(player), captured:false});
 		var king = pieces.get({player:player, type:'king'}, 1);
 
@@ -696,7 +697,21 @@ var game = (function(){
 		return false;
 	};
 
+	var stalemate = function(player) {
+		player = player || states.current.player;
+
+		var playerPieces = pieces.get({player:player, captured:false});
+		for (var i = 0; i < playerPieces.length; i++) {
+			game.getPieceMovs(playerPieces[i].id);
+			if (moves.forPiece[playerPieces[i].id].move.length > 0)
+				return false;
+		}
+		return true;
+	};
+
 	var checkmate = function(player) {
+		player = player || states.current.player;
+		
 		var playerPieces = pieces.get({player:player, captured:false});
 		var king = pieces.get({player:player, type:'king'}, 1);
 
@@ -724,9 +739,9 @@ var game = (function(){
 				pieces.restore();
 			}
 		}
-		
+
 		return true;
-	}
+	};
 
 	//Возвращаем game
 	return {
@@ -821,11 +836,11 @@ var game = (function(){
 
 			//Проверка на шах
 			var sceneActions = [];
-			if (check(states.current.player)) {
+			if (check()) {
 				states.current.rollBack();//Return back changes
 			
-				if (check(states.current.player)) {
-					if (checkmate(states.current.player))
+				if (check()) {
+					if (checkmate())
 						sceneActions.push({task:'message', type:'info', text:'checkmate!'});
 					else
 						sceneActions.push({task:'message', type:'info', text:'Check!'});
@@ -838,6 +853,10 @@ var game = (function(){
 
 			states.next(new State(enemyPlayer()));
 			moves.clear();
+
+			//Проверка на патовую ситуацию
+			if (stalemate()) 
+				sceneActions.push({task:'message', type:'info', text:'Stalemate!'});
 
 			return sceneActions;
 		},
@@ -877,4 +896,3 @@ var game = (function(){
 		}
 	};
 })();//Закончился game
-
