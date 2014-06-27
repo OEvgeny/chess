@@ -680,6 +680,54 @@ var game = (function(){
 		return {move:move,actions:actions};
 	};
 
+	//Функции проверки на шах и на мат
+	var check = function(player) {
+		var map = createMap();
+		
+		var enemyPieces = pieces.get({player:enemyPlayer(player), captured:false});
+		var king = pieces.get({player:player, type:'king'}, 1);
+
+		for (var i = 0; i < enemyPieces.length; i++) {
+			enemyPieces[i].allowedMoves(map, player);
+			if (map[king.pos.x][king.pos.y].allowed)
+				return true;
+		}
+		
+		return false;
+	};
+
+	var checkmate = function(player) {
+		var playerPieces = pieces.get({player:player, captured:false});
+		var king = pieces.get({player:player, type:'king'}, 1);
+
+		for (var i = 0; i < playerPieces.length; i++)
+			game.getPieceMovs(playerPieces[i].id);
+
+		if (moves.forPiece[king.id].length > 0)
+			return false;
+
+		for (var i = 0; i < moves.data.length; i++) {
+			for (var m = 0; m < moves.data[i].move.length; m++) {
+				pieces.protect();
+				for (var j = 0; j < moves.data[i].move[m].pieces.length; j++) {
+					var piece = moves.data[i].move[m].pieces[j];
+					var param = moves.data[i].move[m].params[j];
+					for (var key in param)
+						pieces.all[piece.id][key] = param[key];
+				}
+
+				if (!check(player)) {
+					pieces.restore();
+					return false;
+				}
+
+				pieces.restore();
+			}
+		}
+		
+		return true;
+	}
+
 	//Возвращаем game
 	return {
 		debug: {states:states, pieces:pieces, moves:moves,calc:calcPieceMovs, actions:actions},
@@ -717,11 +765,8 @@ var game = (function(){
 				moves.next.params = [];
 			}
 
-			if (states.current.check) {//Если состояние шаха уже было
-
-			}
-
 			var king = pieces.get({player:'player', type:'king'}, 1);		
+			
 			switch (move.pieces[0].type) {//todo rename movs params to fit states
 				case 'pawn':
 					if (move.params[0].passant) {
@@ -775,26 +820,17 @@ var game = (function(){
 			//states.next();//Переход хода совершён.
 
 			//Проверка на шах
-			var player = states.current.player;
-			var allowed = [];
-			var enemyPieces = pieces.get({player:'enemy', captured:false});
-			var map = createMap();
 			var sceneActions = [];
-			for (var i = 0; i < enemyPieces.length; i++) {
-				var a = enemyPieces[i].allowedMoves(map, player);
-				allowed.push({piece:enemyPieces[i], moves:a});
-			}
-
-			if (map[king.pos.x][king.pos.y].allowed) {
+			if (check(states.current.player)) {
 				states.current.rollBack();//Return back changes
 			
-				for (var i = 0; i < allowed.length; i++)
-					for (var j = 0; j < allowed[i].moves.length; j++) {
-						sceneActions.push({task:'danger', x:allowed[i].moves[j].x, y:allowed[i].moves[j].y});
-					}
+				if (check(states.current.player)) {
+					if (checkmate(states.current.player))
+						sceneActions.push({task:'message', type:'info', text:'checkmate!'});
+					else
+						sceneActions.push({task:'message', type:'info', text:'Check!'});
+				}
 
-				sceneActions.push({task:'message', type:'info', text:'Check!'});
-				states.current.check = true;
 				return sceneActions;
 			}
 
