@@ -341,7 +341,6 @@ var game = (function(){
 							allowed.push(map[x][y])
 								
 							if ((map[x][y].piece.type === 'king') && 
-								(map[x][y].piece.player !== player) &&
 								(player !== currentPlayer)) {
 								x += d;
 								continue;
@@ -368,7 +367,6 @@ var game = (function(){
 							allowed.push(map[x][y]);
 								
 							if ((map[x][y].piece.type === 'king') && 
-								(map[x][y].piece.player !== player) &&
 								(player !== currentPlayer)) {
 								y += d;
 								continue;
@@ -383,11 +381,10 @@ var game = (function(){
 		},
 		bishop: function (map, piece, currentPlayer) {
 			var player = piece.player;
-			var allowed = [];
-
-			var player = piece.player;
 			if (typeof currentPlayer === 'undefined')
 				currentPlayer = player;
+
+			var allowed = [];
 				
 			for (var dx = -1; dx <= 1; dx += 2) {
 				for (var dy = -1; dy <= 1; dy += 2) {
@@ -403,6 +400,13 @@ var game = (function(){
 								(player !== currentPlayer)) {
 								map[x][y].allowed = true;
 								allowed.push(map[x][y])
+
+								if ((map[x][y].piece.type === 'king') && 
+									(player !== currentPlayer)) {
+									x += dx;
+									y += dy;
+									continue;
+								}
 							}
 							break;
 						}
