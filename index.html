@@ -9,28 +9,44 @@
 			.field {
 				display: table;
 				margin: 0 auto;
-				margin-top: 2em;/*TODO Make borders with coords*/
-				width: 800px;
-				height: 800px;
+				margin-top: 2em;
 				background: white;
 				border: solid black 1px;
 				-webkit-user-select: none;
 			}
 			.row {
 				display: table-row;
-				height: 12.5%;
+				height: 100px;
+			}
+			.row.border {
+				height: 30px;
+			}
+			.row .border {
+				display: table-cell;
+				text-align: center;
+				vertical-align: middle;
+				box-shadow:inset 0 0 10px rgba(0,0,0,.3);
+				background: #F0F0F0;
+				font-family: serif;
+				font-weight: bold;
+				font-size: 18pt;
+				cursor: default;
+				width: 30px;
 			}
 			.cell {
 				display: table-cell;
-				width: 12.5%;
+				width: 100px;
 				vertical-align: middle;
 				background: white;
 				background:-webkit-gradient(linear, 0 0, 0 100%, from(#fff), to(#eee));
+				background:-webkit-gradient(linear,0 0, 0 100%, from(#fff), to(#eee));
+				box-shadow:inset 0 0 1px 2px rgba(255,255,255,.65);
 			}
 			.row:nth-child(odd) .cell:nth-child(even),
 			.row:nth-child(even) .cell:nth-child(odd) {
 				background: #999;
 				background:-webkit-gradient(linear, 0 0, 0 100%, from(#bbb), to(#eee));
+				box-shadow:inset 0 0 10px rgba(0,0,0,.35);
 			}
 			.row .cell.allowed {
 				background: #ADF;
@@ -109,7 +125,6 @@
 				display: block;
 				cursor: auto;
 				margin: 12px;
-
 			}
 			.promotionContainer div {
 				display: inline-block;
@@ -293,13 +308,31 @@
 				return {
 					debug: {field:field, pieces:pieces, addButton:addButton},
 					init: function() {
+						//var board = document.createElement('div');
+						//board.classList.add('board');
 						var f = document.createElement('div');
 						f.classList.add('field');
-						for (var i = 0; i < 8; i++) {
+						var letters = ['','A','B','C','D','E','F','G','H', '']
+						for (var i = 0; i < 10; i++) {
+
 
 							var r = document.createElement('div');
 							r.classList.add('row');
 							f.appendChild(r);
+							if (i == 0 || i == 9){
+								r.classList.add('border');
+								for (var j = 0; j < 10; j++) {
+									var bcell = document.createElement('div');
+									bcell.classList.add('border');
+									bcell.innerText = letters[j];
+									r.appendChild(bcell);
+								}
+								continue;
+							}
+							var bcell = document.createElement('div');
+							bcell.classList.add('border');
+							bcell.innerText = 9 - i;
+							r.appendChild(bcell);
 							for (var j = 0; j < 8; j++) {
 								var c = document.createElement('div');
 								c.classList.add('cell');
@@ -307,8 +340,12 @@
 							
 								r.appendChild(c);
 							
-								field[j + 1][8 - i] = c; //Swap i/j to rotate field
+								field[j + 1][9 - i] = c; //Swap i/j to rotate field
 							}
+							bcell = document.createElement('div');
+							bcell.classList.add('border');
+							bcell.innerText = 9 - i;
+							r.appendChild(bcell);
 						}
 
 						var c = document.createElement('div');
