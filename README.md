@@ -1,4 +1,4 @@
 chess
 =====
 
-JavaScript chess writen in plain JavaScript! 
+Chess writen in plain JavaScript for fun :)
